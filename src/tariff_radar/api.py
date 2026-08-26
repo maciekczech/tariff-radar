@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime, timedelta
 from html import escape
 
@@ -11,7 +12,7 @@ from tariff_radar.storage import EventStore
 
 
 def create_app(store: EventStore | None = None) -> FastAPI:
-    event_store = store or EventStore("data/tariff-radar.db")
+    event_store = store or EventStore(os.getenv("TARIFF_RADAR_DB", "data/tariff-radar.db"))
     app = FastAPI(
         title="Tariff Radar API",
         version="0.1.0",
@@ -19,8 +20,8 @@ def create_app(store: EventStore | None = None) -> FastAPI:
     )
 
     @app.get("/healthz")
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
+    def health() -> dict[str, str | int]:
+        return {"status": "ok", "events": event_store.count_events()}
 
     @app.get("/api/v1/events", response_model=EventPage)
     def events(
@@ -36,10 +37,15 @@ def create_app(store: EventStore | None = None) -> FastAPI:
         total = event_store.count_events(reporter=reporter, source=source, query=q)
         return EventPage(total=total, items=items)
 
+    @app.get("/api/v1/sources")
+    def sources() -> dict[str, object]:
+        return {"items": event_store.latest_source_runs()}
+
     @app.get("/api/v1/digest")
     def digest(days: int = Query(1, ge=1, le=3650)) -> dict[str, object]:
         since = datetime.now(UTC) - timedelta(days=days)
         items = event_store.list_events(limit=500, since=since)
+        total = event_store.count_events(since=since)
         lines = [f"# Tariff Radar — last {days} day(s)", ""]
         if not items:
             lines.append("No new tariff signals were collected in this period.")
@@ -47,13 +53,15 @@ def create_app(store: EventStore | None = None) -> FastAPI:
             actor = f" ({event.reporter})" if event.reporter else ""
             lines.extend(
                 [
-                    f"- **{event.title}**{actor}",
+                    f"- **{event.title}**{actor} — `{event.status}`",
                     f"  {event.published_at.date().isoformat()} · {event.source} · {event.source_url}",
                 ]
             )
         return {
             "generated_at": datetime.now(UTC),
             "count": len(items),
+            "total": total,
+            "truncated": total > len(items),
             "markdown": "\n".join(lines),
         }
 
@@ -79,7 +87,7 @@ def _event_card(event: object) -> str:
     url = escape(str(event.source_url), quote=True)
     return f"""
     <article class="card">
-      <div class="meta"><span>{escape(event.measure_type.replace("_", " "))}</span><time>{event.published_at.date()}</time></div>
+      <div class="meta"><span>{escape(event.measure_type.replace("_", " "))} · {escape(event.status.replace("_", " "))}</span><time>{event.published_at.date()}</time></div>
       <h2><a href="{url}" target="_blank" rel="noopener">{escape(event.title)}</a></h2>
       <p>{summary}</p>
       <footer><strong>{reporter}</strong><span>{escape(event.source)}</span></footer>
@@ -101,8 +109,8 @@ input,button{{border:1px solid var(--line);border-radius:4px;padding:13px 14px;f
 .card h2{{font:700 25px/1.15 Georgia,serif;margin:12px 0}}a{{color:inherit;text-decoration-thickness:2px;text-decoration-color:var(--accent)}}.card p{{color:#46514d}}
 .meta,footer{{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}}footer{{border-top:1px solid var(--line);padding-top:14px;margin-top:20px}}footer strong{{color:var(--green)}}.empty{{padding:70px;text-align:center;border:1px dashed var(--muted)}}
 @media(max-width:720px){{.brand{{display:block}}.tag{{margin-top:20px}}form{{grid-template-columns:1fr}}.grid{{grid-template-columns:1fr}}}}
-</style></head><body><header><div class="brand"><h1>Tariff<br>Radar</h1><div class="tag">Official signals. Traceable sources. A machine-readable watchtower for tariff and trade-remedy changes.</div></div></header>
-<main><form><input name="q" value="{escape(q, quote=True)}" placeholder="Search products, countries, measures…"><input name="reporter" value="{escape(reporter, quote=True)}" placeholder="Reporting country"><button>Filter</button></form>
+</style></head><body><header><div class="brand"><h1>Tariff<br>Radar</h1><div class="tag">Selected official signals. Traceable sources. A machine-readable watchtower for tariff and trade-remedy publications.</div></div></header>
+<main><form><input name="q" value="{escape(q, quote=True)}" placeholder="Search titles and summaries…"><input name="reporter" value="{escape(reporter, quote=True)}" placeholder="Reporting country"><button>Filter</button></form>
 <div class="stats"><span>{total} stored signals</span><span><a href="/docs">API documentation →</a></span></div><section class="grid">{cards}</section></main></body></html>"""
 
 

@@ -1,6 +1,6 @@
 # Tariff Radar
 
-Open-source radar for **official tariff and trade-remedy changes**. It polls machine-readable government and WTO sources, filters non-customs false positives, normalizes source-backed events, and exposes them through a REST API, a searchable dashboard, and Markdown digests.
+Open-source radar for **official tariff and trade-remedy signals**, initially covering U.S. documents plus WTO and EU publication feeds. It polls machine-readable sources, filters non-customs false positives, normalizes source-backed events, and exposes them through a REST API, a searchable dashboard, and Markdown digests.
 
 > **MVP boundary:** this is a change-signal index, not a customs calculator or legal advice. Every event links to its source. Exact duty calculation requires product classification, origin, preferences, quotas and effective-date rules.
 
@@ -11,8 +11,10 @@ The first sync bootstraps the latest 45 days of matching U.S. Federal Register p
 - U.S. Federal Register JSON API ingestion (tariffs, Section 301/232, anti-dumping, countervailing duties, safeguards)
 - WTO official RSS ingestion
 - European Commission DG Trade official RSS ingestion
+- EUR-Lex Official Journal L legislation-feed ingestion
 - Idempotent SQLite storage — corrected items update instead of duplicating
 - Source failure isolation and per-source error reporting
+- Persistent per-source run ledger exposed by the API
 - `GET /api/v1/events` with query, reporter, source and pagination filters
 - `GET /api/v1/digest?days=1` for downstream X/YouTube/report workflows
 - Responsive dashboard at `/` and OpenAPI docs at `/docs`
@@ -51,6 +53,7 @@ The scheduled GitHub workflow keeps a rolling cached database and publishes a se
 ```http
 GET /healthz
 GET /api/v1/events?limit=100&offset=0&reporter=United%20States&source=WTO%20News&q=steel
+GET /api/v1/sources
 GET /api/v1/digest?days=7
 GET /docs
 ```
@@ -82,6 +85,7 @@ Empty structured arrays mean “not extracted yet”, not “not applicable”.
 | U.S. Federal Register | https://www.federalregister.gov/developers/documentation/api/v1 | JSON announcements; links to official GovInfo PDFs |
 | WTO | https://www.wto.org/english/res_e/webcas_e/rss_e.htm | Official news RSS |
 | European Commission DG Trade | https://policy.trade.ec.europa.eu/news_en | Official trade-news RSS |
+| EUR-Lex Official Journal L | https://eur-lex.europa.eu/EN/display-feed.rss?rssId=222 | Official EU legislation RSS |
 | WTO Tariff & Trade Data | https://ttd.wto.org/en | Documented expansion source; annual data and tariff-action tracker |
 | EU TARIC | https://taxation-customs.ec.europa.eu/online-services/online-services-and-databases-customs/eu-customs-tariff-taric_en | Documented expansion source; daily raw tariff measures |
 | GOV.UK Trade Tariff API | https://api.trade-tariff.service.gov.uk/ | Documented expansion source; OAuth credentials currently required |

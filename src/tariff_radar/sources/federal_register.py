@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 
-from tariff_radar.classify import is_tariff_relevant
+from tariff_radar.classify import classify_status, is_tariff_relevant
 from tariff_radar.models import TariffEvent
 
 
@@ -67,6 +67,7 @@ class FederalRegisterSource:
                     published_at=published,
                     reporter="United States",
                     measure_type=_measure_type(title, summary),
+                    status=classify_status(title, summary),
                     raw=dict(item),
                 )
             except (KeyError, TypeError, ValueError):

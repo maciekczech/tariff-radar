@@ -26,12 +26,16 @@ class FakeSource:
 class PartiallyFailingStore:
     def __init__(self) -> None:
         self.saved: list[str] = []
+        self.runs: list[tuple[str, str]] = []
 
     def upsert_many(self, events: list[TariffEvent]) -> int:
         if events[0].source == "bad":
             raise RuntimeError("database rejected source")
         self.saved.append(events[0].source)
         return 1
+
+    def record_source_run(self, *, source: str, status: str, **_: object) -> None:
+        self.runs.append((source, status))
 
 
 @pytest.mark.anyio
@@ -41,3 +45,4 @@ async def test_storage_failure_isolated_per_source() -> None:
     assert result.inserted == 1
     assert store.saved == ["good"]
     assert "bad" in result.errors
+    assert store.runs == [("bad", "failed"), ("good", "ok")]

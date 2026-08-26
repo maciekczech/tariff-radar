@@ -29,13 +29,18 @@ def test_events_api_and_digest(tmp_path) -> None:
     digest = client.get("/api/v1/digest?days=3650")
     assert digest.status_code == 200
     assert "New steel tariff" in digest.json()["markdown"]
+    assert digest.json()["total"] == 1
+    assert digest.json()["truncated"] is False
 
 
 def test_dashboard_and_health(tmp_path) -> None:
-    client = TestClient(create_app(EventStore(tmp_path / "radar.db")))
+    store = EventStore(tmp_path / "radar.db")
+    store.record_source_run(source="WTO", status="ok", fetched_count=2, inserted_count=1)
+    client = TestClient(create_app(store))
     assert client.get("/").status_code == 200
     assert "Tariff Radar" in client.get("/").text
-    assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.get("/healthz").json() == {"status": "ok", "events": 0}
+    assert client.get("/api/v1/sources").json()["items"][0]["source"] == "WTO"
 
 
 def test_filtered_total_is_not_limited_to_page_size(tmp_path) -> None:

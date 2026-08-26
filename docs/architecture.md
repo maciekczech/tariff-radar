@@ -11,7 +11,7 @@ Official API/RSS → source adapter → relevance gate → normalized TariffEven
                  → idempotent SQLite upsert → REST API / dashboard / Markdown digest
 ```
 
-A failed source is isolated: other sources still ingest, and the CLI reports errors by source. The stable key is `source + external_id`; reruns update corrected documents without duplicating them.
+A failed source is isolated: other sources still ingest, the CLI reports errors by source, and a persistent source-run ledger records freshness and the latest error for `/api/v1/sources`. The stable key is `source + external_id`; reruns update corrected documents without duplicating them.
 
 ## Current sources
 
@@ -20,6 +20,7 @@ A failed source is isolated: other sources still ingest, and the CLI reports err
 | U.S. Federal Register API | JSON, no API key | U.S. tariff, anti-dumping, countervailing and safeguard notices | Search results require relevance filtering; FederalRegister.gov is an informational XML rendition and links to official GovInfo PDFs |
 | WTO latest-news feed | RSS | Multilateral notifications, disputes and global tariff signals | News signals, not a full line-level rate schedule |
 | European Commission DG Trade news | RSS | EU tariff and trade-defence announcements | News signals, not the daily TARIC measure dump |
+| EUR-Lex Official Journal L | RSS | Binding EU acts and regulations | Broad legislation feed; deterministic relevance filtering is required |
 
 Federal Register collection paginates matching documents from a rolling 45-day window. WTO and DG Trade bootstrap from their current feed windows; regular collection is therefore required to avoid gaps and build a durable history.
 

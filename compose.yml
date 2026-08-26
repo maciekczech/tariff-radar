@@ -5,12 +5,22 @@ services:
       - "8000:8000"
     volumes:
       - tariff-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
   collector:
     build: .
-    command: ["sh", "-c", "while true; do uv run tariff-radar sync; sleep 21600; done"]
+    command: ["sh", "-c", "while true; do tariff-radar sync; sleep 21600; done"]
     volumes:
       - tariff-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
 
 volumes:

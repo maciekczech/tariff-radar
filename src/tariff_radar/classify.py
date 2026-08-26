@@ -65,3 +65,20 @@ def is_tariff_relevant(title: str, summary: str = "") -> bool:
     if any(term in text for term in _MEASURE_TERMS):
         return bool(_ACTIONS.search(text))
     return "tariff" in text and bool(_ACTIONS.search(text)) and "trade" in text
+
+
+def classify_status(title: str, summary: str = "") -> str:
+    text = f"{title} {summary}".casefold()
+    if any(term in text for term in ("revocation", "revoked", "rescission", "terminated")):
+        return "revoked_or_terminated"
+    if "suspens" in text:
+        return "suspended"
+    if "preliminary" in text or "provisional" in text:
+        return "preliminary"
+    if any(term in text for term in ("final", " duty order", "duties imposed", "imposes")):
+        return "final"
+    if any(term in text for term in ("initiation", "investigation", "inquiry")):
+        return "investigation"
+    if "review" in text or "consultation" in text:
+        return "review"
+    return "announced"

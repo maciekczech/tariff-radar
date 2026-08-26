@@ -6,7 +6,6 @@ import json
 import os
 from pathlib import Path
 
-from tariff_radar.api import create_app
 from tariff_radar.service import sync_sources
 from tariff_radar.sources import default_sources
 from tariff_radar.storage import EventStore
@@ -37,14 +36,20 @@ def main() -> None:
     elif args.command == "serve":
         import uvicorn
 
+        from tariff_radar.api import create_app
+
         uvicorn.run(create_app(store), host=args.host, port=args.port)
     elif args.command == "digest":
         from datetime import UTC, datetime, timedelta
 
-        events = store.list_events(limit=500, since=datetime.now(UTC) - timedelta(days=args.days))
+        since = datetime.now(UTC) - timedelta(days=args.days)
+        events = store.list_events(limit=500, since=since)
+        total = store.count_events(since=since)
         print(f"# Tariff Radar — last {args.days} day(s)\n")
         for event in events:
-            print(f"- **{event.title}** — {event.source} ({event.source_url})")
+            print(f"- **{event.title}** — `{event.status}` — {event.source} ({event.source_url})")
+        if total > len(events):
+            print(f"\n_Truncated: showing {len(events)} of {total} signals._")
     elif args.command == "sources":
         for source in default_sources():
             print(f"{source.name}\t{source.url}")

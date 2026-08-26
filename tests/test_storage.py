@@ -33,3 +33,4 @@ def test_filters_by_reporter_and_query(tmp_path) -> None:
     assert len(store.list_events(reporter="Country A")) == 1
     assert len(store.list_events(reporter="Country B")) == 0
     assert len(store.list_events(query="Import duty")) == 1
+    assert len(store.list_events(query="%")) == 0

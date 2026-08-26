@@ -8,7 +8,7 @@ from typing import Any
 import feedparser
 import httpx
 
-from tariff_radar.classify import is_tariff_relevant
+from tariff_radar.classify import classify_status, is_tariff_relevant
 from tariff_radar.models import TariffEvent
 
 
@@ -26,6 +26,8 @@ class RssSource:
 
     def parse(self, content: bytes) -> list[TariffEvent]:
         feed = feedparser.parse(content)
+        if feed.bozo and not feed.entries:
+            raise ValueError("unreadable RSS feed")
         events: list[TariffEvent] = []
         for entry in feed.entries:
             try:
@@ -43,6 +45,7 @@ class RssSource:
                     summary=_strip_html(summary),
                     published_at=_entry_datetime(entry),
                     reporter=self.reporter,
+                    status=classify_status(title, summary),
                     raw=dict(entry),
                 )
             except (TypeError, ValueError):
@@ -61,7 +64,7 @@ def _entry_datetime(entry: dict[str, Any]) -> datetime:
         value = entry.get(key)
         if value:
             return datetime.fromtimestamp(calendar.timegm(value), tz=UTC)
-    return datetime.now(UTC)
+    raise ValueError("RSS entry has no publication date")
 
 
 def _strip_html(value: str) -> str:

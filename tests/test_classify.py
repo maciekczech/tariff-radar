@@ -1,4 +1,4 @@
-from tariff_radar.classify import is_tariff_relevant
+from tariff_radar.classify import classify_status, is_tariff_relevant
 
 
 def test_customs_tariff_change_is_relevant() -> None:
@@ -24,3 +24,14 @@ def test_mfn_and_customs_levy_changes_are_relevant() -> None:
 
 def test_study_mentioning_customs_duty_is_not_a_change() -> None:
     assert not is_tariff_relevant("New customs duty study published", "Researchers discuss policy")
+
+
+def test_procedural_statuses_are_not_flattened_to_announced() -> None:
+    assert classify_status("Preliminary antidumping determination") == "preliminary"
+    assert classify_status("Initiation of safeguard investigation") == "investigation"
+    assert classify_status("Final antidumping duty order") == "final"
+    assert (
+        classify_status("Final affirmative determination", "countervailing investigation")
+        == "final"
+    )
+    assert classify_status("Revocation of countervailing duties") == "revoked_or_terminated"

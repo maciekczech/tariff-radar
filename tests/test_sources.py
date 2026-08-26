@@ -50,6 +50,18 @@ def test_rss_parser_keeps_only_tariff_signals() -> None:
     assert events[0].published_at.isoformat().startswith("2026-08-19")
 
 
+def test_rss_parser_does_not_fabricate_missing_publication_date() -> None:
+    xml = b"""<rss><channel><item><title>Import tariffs increased</title>
+    <link>https://example.test/change</link><description>Government raises tariffs</description>
+    </item></channel></rss>"""
+    assert RssSource(name="test", url="https://example.test/rss", reporter=None).parse(xml) == []
+
+
+def test_rss_parser_rejects_unreadable_feed() -> None:
+    with pytest.raises(ValueError, match="unreadable RSS"):
+        RssSource(name="test", url="https://example.test/rss", reporter=None).parse(b"not xml")
+
+
 @pytest.mark.anyio
 @respx.mock
 async def test_federal_register_fetch_paginates_recent_results() -> None:

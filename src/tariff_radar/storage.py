@@ -34,6 +34,16 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE INDEX IF NOT EXISTS idx_events_published ON events(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_events_reporter ON events(reporter);
+CREATE TABLE IF NOT EXISTS source_runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  fetched_at TEXT NOT NULL,
+  status TEXT NOT NULL,
+  fetched_count INTEGER NOT NULL,
+  inserted_count INTEGER NOT NULL,
+  error TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_source_runs_source ON source_runs(source, id DESC);
 """
 
 
@@ -116,8 +126,9 @@ class EventStore:
             clauses.append("source = ?")
             params.append(source)
         if query:
-            clauses.append("(title LIKE ? OR summary LIKE ?)")
-            params.extend([f"%{query}%", f"%{query}%"])
+            clauses.append("(title LIKE ? ESCAPE '\\' OR summary LIKE ? ESCAPE '\\')")
+            literal = self._like_literal(query)
+            params.extend([literal, literal])
         if since:
             clauses.append("published_at >= ?")
             params.append(since.isoformat())
@@ -147,8 +158,9 @@ class EventStore:
             clauses.append("source = ?")
             params.append(source)
         if query:
-            clauses.append("(title LIKE ? OR summary LIKE ?)")
-            params.extend([f"%{query}%", f"%{query}%"])
+            clauses.append("(title LIKE ? ESCAPE '\\' OR summary LIKE ? ESCAPE '\\')")
+            literal = self._like_literal(query)
+            params.extend([literal, literal])
         if since:
             clauses.append("published_at >= ?")
             params.append(since.isoformat())
@@ -160,6 +172,45 @@ class EventStore:
                     params,
                 ).fetchone()[0]
             )
+
+    def record_source_run(
+        self,
+        *,
+        source: str,
+        status: str,
+        fetched_count: int,
+        inserted_count: int,
+        error: str | None = None,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """INSERT INTO source_runs
+                (source, fetched_at, status, fetched_count, inserted_count, error)
+                VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    source,
+                    datetime.now(UTC).isoformat(),
+                    status,
+                    fetched_count,
+                    inserted_count,
+                    error,
+                ),
+            )
+
+    def latest_source_runs(self) -> list[dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """SELECT source, fetched_at, status, fetched_count, inserted_count, error
+                FROM source_runs AS run
+                WHERE id = (SELECT MAX(id) FROM source_runs WHERE source = run.source)
+                ORDER BY source"""
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    @staticmethod
+    def _like_literal(value: str) -> str:
+        escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        return f"%{escaped}%"
 
     @staticmethod
     def _row_to_event(row: sqlite3.Row) -> TariffEvent:
