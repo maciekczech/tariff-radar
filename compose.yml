@@ -1,0 +1,17 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - tariff-data:/data
+    restart: unless-stopped
+  collector:
+    build: .
+    command: ["sh", "-c", "while true; do uv run tariff-radar sync; sleep 21600; done"]
+    volumes:
+      - tariff-data:/data
+    restart: unless-stopped
+
+volumes:
+  tariff-data:

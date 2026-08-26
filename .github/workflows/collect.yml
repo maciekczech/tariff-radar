@@ -1,0 +1,47 @@
+name: Hermes / Collect tariff signals
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Restore rolling database
+        uses: actions/cache/restore@v4
+        with:
+          path: data/tariff-radar.db
+          key: tariff-radar-state-${{ github.run_id }}
+          restore-keys: tariff-radar-state-
+      - name: Collect
+        id: sync
+        continue-on-error: true
+        run: uv run tariff-radar --db data/tariff-radar.db sync
+      - name: Render seven-day digest
+        if: always()
+        run: uv run tariff-radar --db data/tariff-radar.db digest --days 7 > data/digest.md
+      - name: Save rolling database
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/tariff-radar.db
+          key: tariff-radar-state-${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tariff-radar-${{ github.run_id }}
+          path: |
+            data/tariff-radar.db
+            data/digest.md
+          retention-days: 7
+      - name: Propagate collection failure
+        if: steps.sync.outcome != 'success'
+        run: exit 1

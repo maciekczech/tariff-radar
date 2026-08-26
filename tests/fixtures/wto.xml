@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>WTO news</title>
+<item><title>Country A raises import tariffs on steel from Country B</title><link>https://wto.example/tariff</link><description>A new 25% customs duty applies to steel.</description><pubDate>Wed, 19 Aug 2026 00:00:00 GMT</pubDate><guid>tariff-1</guid></item>
+<item><title>Public Forum registration</title><link>https://wto.example/forum</link><description>Register for a conference.</description><pubDate>Tue, 18 Aug 2026 00:00:00 GMT</pubDate><guid>forum-1</guid></item>
+</channel></rss>

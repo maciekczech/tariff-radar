@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "title": "Modifications to Section 301 Tariffs on Products of China",
+      "type": "Notice",
+      "abstract": "USTR increases tariffs on electric vehicles from China to 100 percent.",
+      "document_number": "2026-12345",
+      "html_url": "https://www.federalregister.gov/documents/2026/08/20/2026-12345/example",
+      "pdf_url": "https://www.govinfo.gov/example.pdf",
+      "publication_date": "2026-08-20",
+      "agencies": [{"name": "Office of the United States Trade Representative"}]
+    },
+    {
+      "title": "Pipeline tariff filing",
+      "type": "Notice",
+      "abstract": "A utility rate filing unrelated to customs duties.",
+      "document_number": "2026-99999",
+      "html_url": "https://www.federalregister.gov/documents/2026/08/20/2026-99999/pipeline",
+      "publication_date": "2026-08-20",
+      "agencies": [{"name": "Federal Energy Regulatory Commission"}]
+    }
+  ]
+}
