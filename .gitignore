@@ -6,6 +6,8 @@ __pycache__/
 .coverage
 htmlcov/
 dist/
+data/daily-report*
+data/x-publish-*.json
 *.db
 *.sqlite3
 .env
