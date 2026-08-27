@@ -35,8 +35,23 @@ Open `http://localhost:8000`. Data defaults to `data/tariff-radar.db`; override 
 ```bash
 uv run tariff-radar sources
 uv run tariff-radar digest --days 7
+uv run tariff-radar publish-x --days 1
 curl 'http://localhost:8000/api/v1/events?q=steel&limit=20'
 ```
+
+## Optional X publishing
+
+`publish-x` is dry-run by default: it renders a numbered thread with source links and never touches an account. Live posting uses [xurl](https://github.com/xdevplatform/xurl), the official X API CLI, so OAuth tokens stay in xurl's own profile rather than this application's database or environment.
+
+One-time account setup must be completed manually outside an agent session:
+
+1. Create an app in the X Developer Portal and enable OAuth 2.0 user authentication with `tweet.write`.
+2. Install xurl and register/authenticate the app following its official instructions.
+3. Verify with `xurl auth status` and `xurl whoami`.
+4. Preview with `uv run tariff-radar publish-x --days 1`.
+5. Post only after review: `uv run tariff-radar publish-x --days 1 --state-file data/x-state.json --execute`.
+
+The state file makes retries resume a partially published thread instead of creating a second root post. The daily scheduler also uses a lock and one-run-per-Warsaw-date marker. It remains Discord-only until `TARIFF_RADAR_POST_TO_X=true` is explicitly injected into its runtime. No X credentials are committed to this repository.
 
 ### Docker
 

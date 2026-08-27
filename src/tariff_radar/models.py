@@ -34,6 +34,10 @@ class TariffEvent(BaseModel):
         parsed = urlparse(value)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise ValueError("source URLs must use HTTP(S)")
+        if any(character.isspace() or ord(character) < 32 for character in value):
+            raise ValueError("source URLs cannot contain whitespace or control characters")
+        if any(character in value for character in '<>"`[](){}|\\^@'):
+            raise ValueError("source URLs contain unsafe display delimiters")
         return value
 
     @field_validator("published_at", "effective_from")

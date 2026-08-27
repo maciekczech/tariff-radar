@@ -16,6 +16,15 @@ def test_rejects_non_http_source_urls() -> None:
             published_at=datetime.now(UTC),
         )
 
+    with pytest.raises(ValidationError):
+        TariffEvent(
+            external_id="2",
+            source="bad",
+            source_url="https://example.test/) @everyone",
+            title="Bad display URL",
+            published_at=datetime.now(UTC),
+        )
+
 
 def test_normalizes_event_datetimes_to_utc() -> None:
     event = TariffEvent(

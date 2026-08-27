@@ -21,6 +21,14 @@ def _parser() -> argparse.ArgumentParser:
     serve.add_argument("--port", default=8000, type=int)
     digest = sub.add_parser("digest", help="Print a Markdown digest")
     digest.add_argument("--days", default=1, type=int)
+    publish_x = sub.add_parser("publish-x", help="Preview or publish a daily X thread")
+    publish_x.add_argument("--days", default=1, type=int)
+    publish_x.add_argument("--state-file", type=Path)
+    publish_x.add_argument(
+        "--execute",
+        action="store_true",
+        help="Actually post through an already authenticated xurl profile",
+    )
     sub.add_parser("sources", help="List configured sources")
     return parser
 
@@ -53,6 +61,23 @@ def main() -> None:
     elif args.command == "sources":
         for source in default_sources():
             print(f"{source.name}\t{source.url}")
+    elif args.command == "publish-x":
+        from datetime import UTC, datetime, timedelta
+
+        from tariff_radar.publishing import build_x_thread
+
+        since = datetime.now(UTC) - timedelta(days=args.days)
+        events = store.list_events(limit=100, since=since)
+        total = store.count_events(since=since)
+        posts = build_x_thread(events, generated_at=datetime.now(UTC), detected_total=total)
+        if args.execute:
+            from tariff_radar.publishers.xurl import publish_thread_with_xurl
+
+            ids = publish_thread_with_xurl(posts, state_path=args.state_file)
+            print(json.dumps({"posted": len(ids), "ids": ids}))
+        else:
+            for index, post in enumerate(posts, start=1):
+                print(f"--- X POST {index}/{len(posts)} ---\n{post}\n")
 
 
 if __name__ == "__main__":
