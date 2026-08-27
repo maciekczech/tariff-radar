@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import calendar
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
@@ -19,10 +20,18 @@ class RssSource:
         self.reporter = reporter
 
     async def fetch(self) -> list[TariffEvent]:
-        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-            response = await client.get(self.url)
-            response.raise_for_status()
-        return self.parse(response.content)
+        headers = {"User-Agent": "TariffRadar/0.1 (+https://github.com/maciekczech/tariff-radar)"}
+        async with httpx.AsyncClient(timeout=60, follow_redirects=True, headers=headers) as client:
+            for attempt in range(3):
+                try:
+                    response = await client.get(self.url)
+                    response.raise_for_status()
+                    return self.parse(response.content)
+                except (httpx.TransportError, httpx.HTTPStatusError):
+                    if attempt == 2:
+                        raise
+                    await asyncio.sleep(0.5 * (2**attempt))
+        raise RuntimeError("RSS retry loop ended unexpectedly")
 
     def parse(self, content: bytes) -> list[TariffEvent]:
         feed = feedparser.parse(content)

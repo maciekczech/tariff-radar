@@ -84,3 +84,22 @@ async def test_federal_register_fetch_paginates_recent_results() -> None:
     events = await FederalRegisterSource().fetch()
     assert [event.external_id for event in events] == ["one", "two"]
     assert route.call_count == 2
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_rss_fetch_retries_transient_failure(monkeypatch) -> None:
+    route = respx.get("https://example.test/rss").mock(
+        side_effect=[
+            httpx.Response(503),
+            httpx.Response(200, content=(FIXTURES / "wto.xml").read_bytes()),
+        ]
+    )
+
+    async def no_sleep(_: float) -> None:
+        return None
+
+    monkeypatch.setattr("asyncio.sleep", no_sleep)
+    events = await RssSource(name="WTO", url="https://example.test/rss", reporter=None).fetch()
+    assert len(events) == 1
+    assert route.call_count == 2

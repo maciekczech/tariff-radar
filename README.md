@@ -51,7 +51,7 @@ One-time account setup must be completed manually outside an agent session:
 4. Preview with `uv run tariff-radar publish-x --days 1`.
 5. Post only after review: `uv run tariff-radar publish-x --days 1 --state-file data/x-state.json --execute`.
 
-The state file makes retries resume a partially published thread instead of creating a second root post. The daily scheduler also uses a lock and one-run-per-Warsaw-date marker. It remains Discord-only until `TARIFF_RADAR_POST_TO_X=true` is explicitly injected into its runtime. No X credentials are committed to this repository.
+The state file makes retries resume a partially published thread instead of creating a second root post. The daily scheduler also uses a lock and one-run-per-Warsaw-date marker. Its morning brief prioritizes final measures over routine proceedings, deduplicates repeated topics, and falls back to the most consequential seven-day developments instead of sending an empty report on quiet days. It remains Discord-only until `TARIFF_RADAR_POST_TO_X=true` is explicitly injected into its runtime. No X credentials are committed to this repository.
 
 ### Docker
 

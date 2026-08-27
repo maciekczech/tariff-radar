@@ -35,3 +35,17 @@ def test_procedural_statuses_are_not_flattened_to_announced() -> None:
         == "final"
     )
     assert classify_status("Revocation of countervailing duties") == "revoked_or_terminated"
+    assert (
+        classify_status(
+            "Continuation of Antidumping Duty Order",
+            "Revocation would likely lead to recurrence of dumping",
+        )
+        == "final"
+    )
+    assert (
+        classify_status(
+            "Adjusting Imports of Unmanned Aircraft Systems",
+            "The applicable duty rate imposed shall be 25 percent unless later terminated.",
+        )
+        == "final"
+    )

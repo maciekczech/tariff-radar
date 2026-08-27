@@ -68,17 +68,33 @@ def is_tariff_relevant(title: str, summary: str = "") -> bool:
 
 
 def classify_status(title: str, summary: str = "") -> str:
-    text = f"{title} {summary}".casefold()
-    if any(term in text for term in ("revocation", "revoked", "rescission", "terminated")):
+    headline = title.casefold()
+    detail = summary.casefold()
+    if any(term in headline for term in ("revocation", "revoked", "rescission", "terminated")):
         return "revoked_or_terminated"
-    if "suspens" in text:
+    if "suspens" in headline:
         return "suspended"
-    if "preliminary" in text or "provisional" in text:
+    if "preliminary" in headline or "provisional" in headline:
         return "preliminary"
-    if any(term in text for term in ("final", " duty order", "duties imposed", "imposes")):
+    if any(
+        term in headline
+        for term in ("final", " duty order", "duty orders", "continuation", "imposes")
+    ):
         return "final"
-    if any(term in text for term in ("initiation", "investigation", "inquiry")):
+    if any(term in headline for term in ("initiation", "investigation", "inquiry")):
         return "investigation"
-    if "review" in text or "consultation" in text:
+    if "review" in headline or "consultation" in headline:
         return "review"
+
+    if any(
+        term in detail
+        for term in ("duties imposed", "duty rate imposed", "is issuing", "adopted an implementing")
+    ):
+        return "final"
+    if "suspens" in detail:
+        return "suspended"
+    if "preliminary" in detail or "provisional" in detail:
+        return "preliminary"
+    if any(term in detail for term in ("initiation of", "launches an investigation")):
+        return "investigation"
     return "announced"
