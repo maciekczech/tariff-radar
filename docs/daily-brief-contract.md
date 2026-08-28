@@ -4,11 +4,13 @@ Produce a high-density daily tariff brief for Discord now and X later.
 
 ## Output
 
-- `🇵🇱 POLSKI`: one bullet per substantive event.
-- `🇬🇧 ENGLISH`: the same bullets in the same order.
+- `🇵🇱 POLSKI / DZIŚ`: one bullet for every substantive event from the previous 24 hours.
+- `🇵🇱 POLSKI / 7 DNI`: up to five most material older events from the rolling seven-day window, excluding today's duplicates.
+- `🇬🇧 ENGLISH`: exact counterparts in the same section/order.
 - `Źródła / Sources`: numbered official links matching the bullets.
 - Each bullet is exactly one dense, natural sentence—not a title plus explanation.
 - Include every substantive event in the daily window, but merge duplicate documents about the same action.
+- Do not repeat today's events in the seven-day section; if there are no additional weekly events, say so in one sentence.
 
 ## Sentence content
 
