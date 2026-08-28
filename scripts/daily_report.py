@@ -117,6 +117,7 @@ def build_report(now_warsaw: datetime, sync_data: dict[str, object]) -> str:
                 WHEN 'suspended' THEN 90
                 WHEN 'revoked_or_terminated' THEN 80
                 WHEN 'announced' THEN 70
+                WHEN 'final_determination' THEN 60
                 WHEN 'investigation' THEN 40
                 WHEN 'review' THEN 20
                 ELSE 10 END DESC,
@@ -187,6 +188,7 @@ def _diverse_top_events(candidates: list[sqlite3.Row], limit: int) -> list[sqlit
 def _status_takeaway(status: str) -> str:
     return {
         "final": "✅ Decyzja końcowa — potencjalny realny wpływ na import",
+        "final_determination": "🟠 Końcowe ustalenie organu — to jeszcze nie musi być nakaz celny",
         "suspended": "⏸️ Środek pozostaje wstrzymany — ważne dla terminów i ryzyka odwetu",
         "revoked_or_terminated": "🛑 Środek wycofany lub zakończony",
         "investigation": "🔎 Postępowanie — jeszcze nie jest to nowe obowiązujące cło",

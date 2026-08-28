@@ -20,6 +20,8 @@ Good:
 
 Never invent a rate or effective date. Never describe an investigation, proposal, review, or suspension as an imposed tariff. Skip routine corrections and administrative notices unless they materially change a measure.
 
+For U.S. anti-dumping/countervailing cases, distinguish a Commerce **final determination** from a legally issued **duty order**: a final CVD determination is not an imposed CVD order until the ITC makes the required affirmative injury determination and Commerce issues the order.
+
 ## Style
 
 Concrete, vivid and plain-language; no bureaucratic titles, generic commentary, methodology prose, or technical collector statistics in the lead. Keep each sentence suitable for a standalone X post. Sources belong in the source block now and in replies/comments when X delivery is enabled.

@@ -32,7 +32,7 @@ def test_procedural_statuses_are_not_flattened_to_announced() -> None:
     assert classify_status("Final antidumping duty order") == "final"
     assert (
         classify_status("Final affirmative determination", "countervailing investigation")
-        == "final"
+        == "final_determination"
     )
     assert classify_status("Revocation of countervailing duties") == "revoked_or_terminated"
     assert (

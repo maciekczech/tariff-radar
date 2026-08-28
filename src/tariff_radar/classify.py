@@ -76,6 +76,8 @@ def classify_status(title: str, summary: str = "") -> str:
         return "suspended"
     if "preliminary" in headline or "provisional" in headline:
         return "preliminary"
+    if "final" in headline and "determination" in headline and "order" not in headline:
+        return "final_determination"
     if any(
         term in headline
         for term in ("final", " duty order", "duty orders", "continuation", "imposes")
