@@ -7,6 +7,7 @@ __pycache__/
 htmlcov/
 dist/
 data/daily-report*
+data/daily-brief-*.md
 data/x-publish-*.json
 *.db
 *.sqlite3
